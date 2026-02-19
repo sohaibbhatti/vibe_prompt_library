@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Library</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Prompt Library</h1>
+            <p>Store and organize your AI prompts.</p>
+        </header>
+
+        <section class="add-prompt-section">
+            <form id="promptForm">
+                <div class="form-group">
+                    <label for="title">Prompt Title</label>
+                    <input type="text" id="title" name="title" placeholder="e.g., Code Reviewer" required>
+                </div>
+                <div class="form-group">
+                    <label for="content">Prompt Content</label>
+                    <textarea id="content" name="content" placeholder="Enter your prompt here..." rows="5" required></textarea>
+                </div>
+                <button type="submit" class="btn-primary">Save Prompt</button>
+            </form>
+        </section>
+
+        <section class="prompt-list-section">
+            <h2>Saved Prompts</h2>
+            <div id="promptList" class="prompt-grid">
+                <!-- Prompts will be injected here by JavaScript -->
+            </div>
+        </section>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
