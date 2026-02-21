@@ -28,7 +28,15 @@
         </section>
 
         <section class="prompt-list-section">
-            <h2>Saved Prompts</h2>
+            <div class="list-header">
+                <h2>Saved Prompts</h2>
+                <div class="filter-container">
+                    <select id="sortBy" class="sort-select">
+                        <option value="newest">Newest</option>
+                        <option value="rating">Highest Rated</option>
+                    </select>
+                </div>
+            </div>
             <div id="promptList" class="prompt-grid">
                 <!-- Prompts will be injected here by JavaScript -->
             </div>

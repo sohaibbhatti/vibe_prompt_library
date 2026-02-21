@@ -46,6 +46,36 @@ h2 {
     padding-bottom: 0.5rem;
 }
 
+.list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.list-header h2 {
+    margin-bottom: 0;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.sort-select {
+    padding: 0.4rem 0.8rem;
+    background-color: #0d1117;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.sort-select:focus {
+    outline: none;
+    border-color: #58a6ff;
+}
+
 p {
     color: var(--text-secondary);
 }
@@ -150,6 +180,35 @@ textarea:focus {
     -webkit-box-orient: vertical;
 }
 
+.star-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin: 0.75rem 0;
+}
+
+.star {
+    font-size: 1.25rem;
+    color: #484f58; /* Visible empty state */
+    cursor: pointer;
+    transition: color 0.1s, transform 0.1s;
+    line-height: 1;
+}
+
+.star.filled {
+    color: #e3b341; /* GitHub-like yellow/gold */
+}
+
+.star:hover {
+    transform: scale(1.2);
+}
+
+.rating-text {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-left: 0.5rem;
+}
+
 .prompt-actions {
     margin-top: 1rem;
     text-align: right;
@@ -177,4 +236,71 @@ textarea:focus {
     padding: 3rem;
     color: var(--text-secondary);
     font-style: italic;
+}
+
+/* Personal Notes Feature */
+.prompt-notes-section {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.prompt-notes-section textarea {
+    width: 100%;
+    margin-bottom: 0.5rem;
+    min-height: 80px;
+    resize: vertical;
+}
+
+.note-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.note-status {
+    font-size: 0.85rem;
+    margin-right: auto; /* Pushes buttons to the right */
+    color: var(--accent-color);
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.note-status.visible {
+    opacity: 1;
+}
+
+.btn-save-note {
+    background-color: var(--card-bg);
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+    border-radius: 4px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-save-note:hover {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+/* Reuse .btn-delete styles for Delete Note but ensure specificity if needed */
+.btn-delete-note {
+    background-color: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-delete-note:hover {
+    color: #da3633;
+    border-color: #da3633;
 }
