@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const promptForm = document.getElementById('promptForm');
     const promptList = document.getElementById('promptList');
     const titleInput = document.getElementById('title');
+    const modelInput = document.getElementById('model');
     const contentInput = document.getElementById('content');
     const sortBySelect = document.getElementById('sortBy');
 
@@ -22,23 +23,31 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
 
         const title = titleInput.value.trim();
+        const model = modelInput.value.trim();
         const content = contentInput.value.trim();
 
-        if (title && content) {
-            const newPrompt = {
-                id: Date.now(), // Simple unique ID
-                title: title,
-                content: content,
-                userRating: 0,
-                ratingCount: 0,
-                averageRating: 0,
-                createdAt: new Date().toISOString()
-            };
+        if (title && content && model) {
+            try {
+                const metadata = trackModel(model, content);
+                
+                const newPrompt = {
+                    id: Date.now(), // Simple unique ID
+                    title: title,
+                    content: content,
+                    metadata: metadata, // Add metadata here
+                    userRating: 0,
+                    ratingCount: 0,
+                    averageRating: 0,
+                    createdAt: metadata.createdAt // Use metadata timestamp for consistency
+                };
 
-            prompts.push(newPrompt);
-            savePrompts();
-            renderPrompts();
-            promptForm.reset();
+                prompts.push(newPrompt);
+                savePrompts();
+                renderPrompts();
+                promptForm.reset();
+            } catch (error) {
+                alert(`Error creating prompt: ${error.message}`);
+            }
         }
     });
 
@@ -199,10 +208,42 @@ document.addEventListener('DOMContentLoaded', () => {
             const noteContent = existingNote ? existingNote.noteContent : '';
             const hasNote = !!existingNote;
 
+            // Metadata HTML Generation
+            let metadataHtml = '';
+            if (prompt.metadata) {
+                const { model, createdAt, updatedAt, tokenEstimate } = prompt.metadata;
+                const formattedCreated = new Date(createdAt).toLocaleString();
+                const formattedUpdated = updatedAt ? new Date(updatedAt).toLocaleString() : formattedCreated;
+                
+                let confidenceClass = 'token-high';
+                if (tokenEstimate.confidence === 'medium') confidenceClass = 'token-medium';
+                if (tokenEstimate.confidence === 'low') confidenceClass = 'token-low';
+
+                metadataHtml = `
+                    <div class="metadata-section">
+                        <div class="metadata-item">
+                            <span class="metadata-label">Model:</span>
+                            <span class="metadata-value">${escapeHtml(model)}</span>
+                        </div>
+                        <div class="metadata-item">
+                            <span class="metadata-label">Created:</span>
+                            <span class="metadata-value">${formattedCreated}</span>
+                        </div>
+                        <div class="metadata-item">
+                            <span class="metadata-label">Tokens:</span>
+                            <span class="metadata-value token-badge ${confidenceClass}">
+                                ${tokenEstimate.min}-${tokenEstimate.max} (${tokenEstimate.confidence})
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }
+
             card.innerHTML = `
                 <div class="prompt-header">
                     <h3 class="prompt-title">${escapeHtml(prompt.title)}</h3>
                     <div class="prompt-preview">${escapeHtml(preview)}</div>
+                    ${metadataHtml}
                     <div class="star-rating" id="rating-${prompt.id}" onmouseleave="resetStars(${prompt.id})">
                         ${starsHtml}
                         <span class="rating-text">(${prompt.ratingCount || 0})</span>
@@ -235,5 +276,87 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
+    }
+
+    // Metadata Tracking System
+    function estimateTokens(text, isCode = false) {
+        if (!text) return { min: 0, max: 0, confidence: 'high' };
+        
+        // Simple heuristic: 
+        // Words are split by spaces. 
+        // Characters are length of string.
+        const wordCount = text.trim().split(/\s+/).length;
+        const charCount = text.length;
+        
+        let min = Math.ceil(0.75 * wordCount);
+        let max = Math.ceil(0.25 * charCount);
+        
+        if (isCode) {
+            min = Math.ceil(min * 1.3);
+            max = Math.ceil(max * 1.3);
+        }
+        
+        // Determine confidence based on average estimate size
+        const avg = (min + max) / 2;
+        let confidence = 'high';
+        if (avg >= 1000 && avg <= 5000) {
+            confidence = 'medium';
+        } else if (avg > 5000) {
+            confidence = 'low';
+        }
+        
+        return {
+            min,
+            max,
+            confidence
+        };
+    }
+
+    function trackModel(modelName, content) {
+        if (!modelName || typeof modelName !== 'string' || modelName.trim() === '') {
+            throw new Error('Model name must be a non-empty string.');
+        }
+        if (modelName.length > 100) {
+            throw new Error('Model name must be less than 100 characters.');
+        }
+
+        const now = new Date().toISOString();
+        
+        // Check if content looks like code (simple heuristic)
+        const isCode = /[{}[\];]/.test(content) || /\b(function|const|let|var|class|import|def|if|else|for|while)\b/.test(content);
+        
+        const tokenEstimate = estimateTokens(content, isCode);
+
+        return {
+            model: modelName.trim(),
+            createdAt: now,
+            updatedAt: now,
+            tokenEstimate: tokenEstimate
+        };
+    }
+
+    function updateTimestamps(metadata) {
+        if (!metadata || !metadata.createdAt) {
+             throw new Error('Invalid metadata object.');
+        }
+        
+        const now = new Date().toISOString();
+        
+        // Validate createdAt is valid ISO string
+        const createdDate = new Date(metadata.createdAt);
+        if (isNaN(createdDate.getTime())) {
+            throw new Error('Invalid createdAt timestamp.');
+        }
+        
+        const updatedDate = new Date(now);
+        
+        if (updatedDate < createdDate) {
+            throw new Error('updatedAt cannot be before createdAt.');
+        }
+        
+        return {
+            ...metadata,
+            updatedAt: now
+        };
     }
 });
