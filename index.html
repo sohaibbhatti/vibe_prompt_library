@@ -34,6 +34,11 @@
         <section class="prompt-list-section">
             <div class="list-header">
                 <h2>Saved Prompts</h2>
+                <div class="actions-container">
+                    <button id="exportBtn" class="btn-secondary">Export JSON</button>
+                    <button id="importBtn" class="btn-secondary">Import JSON</button>
+                    <input type="file" id="importFile" accept=".json" style="display: none;">
+                </div>
                 <div class="filter-container">
                     <select id="sortBy" class="sort-select">
                         <option value="newest">Newest</option>

@@ -10,6 +10,169 @@ document.addEventListener('DOMContentLoaded', () => {
     let prompts = JSON.parse(localStorage.getItem('prompts')) || [];
     let userNotes = JSON.parse(localStorage.getItem('userNotes')) || [];
 
+    // Export/Import Elements
+    const exportBtn = document.getElementById('exportBtn');
+    const importBtn = document.getElementById('importBtn');
+    const importFile = document.getElementById('importFile');
+
+    // Export Handler
+    if (exportBtn) {
+        exportBtn.addEventListener('click', () => {
+            const exportData = {
+                version: 1,
+                timestamp: new Date().toISOString(),
+                stats: calculateStats(),
+                prompts: prompts,
+                userNotes: userNotes
+            };
+
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `prompt-library-export-${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+    }
+
+    // Import Handler
+    if (importBtn) {
+        importBtn.addEventListener('click', () => importFile.click());
+    }
+
+    if (importFile) {
+        importFile.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    processImport(importedData);
+                } catch (err) {
+                    alert('Failed to parse JSON: ' + err.message);
+                }
+                event.target.value = ''; // Reset
+            };
+            reader.readAsText(file);
+        });
+    }
+
+    function calculateStats() {
+        if (!prompts.length) return { total: 0, averageRating: 0, mostUsedModel: 'N/A' };
+        
+        const total = prompts.length;
+        const avgRating = prompts.reduce((sum, p) => sum + (p.userRating || 0), 0) / total;
+        
+        const modelCounts = {};
+        prompts.forEach(p => {
+            const m = p.metadata?.model || 'Unknown';
+            modelCounts[m] = (modelCounts[m] || 0) + 1;
+        });
+        
+        const sortedModels = Object.entries(modelCounts).sort((a,b) => b[1] - a[1]);
+        const topModel = sortedModels.length > 0 ? sortedModels[0][0] : 'N/A';
+
+        return {
+            total,
+            averageRating: avgRating.toFixed(2),
+            mostUsedModel: topModel
+        };
+    }
+
+    function processImport(data) {
+        // Step 4: Validate
+        if (!data.version || !Array.isArray(data.prompts)) {
+            alert('Invalid import file format.');
+            return;
+        }
+
+        // Step 5: Backup & Error Recovery
+        const backupPrompts = JSON.stringify(prompts);
+        const backupNotes = JSON.stringify(userNotes);
+
+        try {
+            const newPrompts = data.prompts;
+            const newNotes = data.userNotes || [];
+            
+            let conflictCount = 0;
+            const existingIds = new Set(prompts.map(p => p.id));
+            
+            newPrompts.forEach(p => {
+                if (existingIds.has(p.id)) conflictCount++;
+            });
+
+            let mergeStrategy = 'keep_both';
+            
+            if (conflictCount > 0) {
+                // Merge conflict resolution prompts
+                const userChoice = confirm(`Found ${conflictCount} conflicting prompt IDs.\n\nClick OK to OVERWRITE existing prompts.\nClick Cancel to KEEP BOTH (import as new copies).`);
+                mergeStrategy = userChoice ? 'overwrite' : 'keep_both';
+            }
+
+            let importedCount = 0;
+
+            newPrompts.forEach(p => {
+                const existingIndex = prompts.findIndex(existing => existing.id === p.id);
+                
+                if (existingIndex > -1) {
+                    if (mergeStrategy === 'overwrite') {
+                        prompts[existingIndex] = p;
+                        // Update associated note
+                        const newNote = newNotes.find(n => n.promptId === p.id);
+                        if (newNote) {
+                             const noteIndex = userNotes.findIndex(n => n.promptId === p.id);
+                             if (noteIndex > -1) userNotes[noteIndex] = newNote;
+                             else userNotes.push(newNote);
+                        }
+                    } else {
+                        // Keep both: Create new ID
+                        const oldId = p.id;
+                        const newId = Date.now() + Math.floor(Math.random() * 100000); 
+                        p.id = newId;
+                        prompts.push(p);
+                        
+                        // Handle Note
+                        const note = newNotes.find(n => n.promptId === oldId);
+                        if (note) {
+                            // Clone note with new ID
+                            userNotes.push({
+                                ...note,
+                                promptId: newId
+                            });
+                        }
+                    }
+                } else {
+                    prompts.push(p);
+                    const note = newNotes.find(n => n.promptId === p.id);
+                    if (note) userNotes.push(note);
+                }
+                importedCount++;
+            });
+
+            savePrompts();
+            saveNotes();
+            renderPrompts();
+            alert(`Successfully imported ${importedCount} prompts!`);
+
+        } catch (err) {
+            console.error(err);
+            // Rollback
+            prompts = JSON.parse(backupPrompts);
+            userNotes = JSON.parse(backupNotes);
+            savePrompts(); // Restore storage
+            saveNotes();
+            renderPrompts();
+            alert('Error during import. Changes reverted.\n' + err.message);
+        }
+    }
+
     // Initial Render
     renderPrompts();
 
