@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SVG Form Toggle</title>
+    <style>
+      /* 1. Visually hide the checkbox but keep it accessible for screen readers */
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      /* 2. Style the label to act as the clickable area */
+      .theme-toggle {
+        cursor: pointer;
+        display: inline-block;
+        width: 200px; /* Adjust size here */
+      }
+
+      /* 3. Base SVG element transitions */
+      .track,
+      .thumb-group,
+      .sun,
+      .moon,
+      .clouds,
+      .stars {
+        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .track {
+        fill: #63b3ed;
+      }
+      .thumb-group {
+        transform: translateX(0);
+      }
+      .sun {
+        opacity: 1;
+        transform-origin: 60px 50px;
+        transform: rotate(0deg) scale(1);
+      }
+      .moon {
+        opacity: 0;
+        transform-origin: 60px 50px;
+        transform: rotate(-90deg) scale(0.3);
+        filter: drop-shadow(0px 0px 5px rgba(250, 240, 137, 0.9));
+      }
+      .clouds {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      .stars {
+        opacity: 0;
+        transform: translateX(15px);
+      }
+
+      /* 4. Map the :checked state of the input to the SVG elements */
+      .visually-hidden:checked + svg .track {
+        fill: #1a202c;
+      }
+
+      .visually-hidden:checked + svg .thumb-group {
+        transform: translateX(80px);
+      }
+
+      .visually-hidden:checked + svg .sun {
+        opacity: 0;
+        transform: rotate(90deg) scale(0.3);
+      }
+
+      .visually-hidden:checked + svg .moon {
+        opacity: 1;
+        transform: rotate(0deg) scale(1);
+      }
+
+      .visually-hidden:checked + svg .clouds {
+        opacity: 0;
+        transform: translateX(-15px);
+      }
+
+      .visually-hidden:checked + svg .stars {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      /* Optional: Add focus styles for keyboard accessibility */
+      .visually-hidden:focus-visible + svg .track {
+        outline: 3px solid #4299e1;
+        outline-offset: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <label class="theme-toggle" for="dark-mode-switch">
+      <input
+        type="checkbox"
+        id="dark-mode-switch"
+        class="visually-hidden"
+        name="theme"
+        value="dark"
+      />
+
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 200 100"
+        width="100%"
+        height="100%"
+        style="display: block"
+      >
+        <defs>
+          <filter
+            id="thumb-shadow"
+            x="-20%"
+            y="-20%"
+            width="140%"
+            height="140%"
+          >
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15" />
+          </filter>
+          <mask id="moon-mask">
+            <rect x="0" y="0" width="200" height="100" fill="white" />
+            <circle cx="64" cy="46" r="11" fill="black" />
+          </mask>
+        </defs>
+
+        <g class="toggle">
+          <rect class="track" x="30" y="20" width="140" height="60" rx="30" />
+
+          <g class="clouds" fill="#ffffff" opacity="0.85">
+            <circle cx="125" cy="45" r="9" />
+            <circle cx="138" cy="50" r="13" />
+            <circle cx="152" cy="48" r="10" />
+            <rect x="125" y="47" width="27" height="13" rx="6.5" />
+          </g>
+
+          <g class="stars" fill="#ffffff">
+            <circle cx="50" cy="35" r="1.5" />
+            <circle cx="75" cy="45" r="2" />
+            <circle cx="60" cy="65" r="1" />
+            <circle cx="90" cy="30" r="1.5" />
+            <circle cx="105" cy="55" r="1" />
+          </g>
+
+          <g class="thumb-group">
+            <circle
+              cx="60"
+              cy="50"
+              r="26"
+              fill="#FFFFFF"
+              filter="url(#thumb-shadow)"
+            />
+
+            <g class="sun">
+              <circle cx="60" cy="50" r="9" fill="#F6AD55" />
+              <g stroke="#F6AD55" stroke-width="2.5" stroke-linecap="round">
+                <line x1="60" y1="34" x2="60" y2="37" />
+                <line x1="60" y1="63" x2="60" y2="66" />
+                <line x1="44" y1="50" x2="47" y2="50" />
+                <line x1="73" y1="50" x2="76" y2="50" />
+                <line x1="48.5" y1="38.5" x2="50.5" y2="40.5" />
+                <line x1="69.5" y1="59.5" x2="71.5" y2="61.5" />
+                <line x1="48.5" y1="61.5" x2="50.5" y2="59.5" />
+                <line x1="69.5" y1="38.5" x2="71.5" y2="40.5" />
+              </g>
+            </g>
+
+            <circle
+              class="moon"
+              cx="60"
+              cy="50"
+              r="13"
+              fill="#FAF089"
+              mask="url(#moon-mask)"
+            />
+          </g>
+        </g>
+      </svg>
+    </label>
+  </body>
+</html>

@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lost in the Middle: LLM Context Performance</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      :root {
+        --primary: #2c3e50;
+        --accent-gpt: #8e44ad;
+        --accent-claude: #3498db;
+        --accent-mpt: #1abc9c;
+        --bg-color: #f4f7f9;
+        --card-bg: #ffffff;
+        --text-main: #333333;
+        --text-muted: #666666;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        margin: 0;
+        padding: 3rem 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .container {
+        background: var(--card-bg);
+        padding: 2.5rem;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        max-width: 900px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      h1 {
+        color: var(--primary);
+        text-align: center;
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+        font-size: 2.2rem;
+      }
+
+      .subtitle {
+        line-height: 1.6;
+        color: var(--text-muted);
+        text-align: center;
+        margin-bottom: 2.5rem;
+        font-size: 1.1rem;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .chart-container {
+        position: relative;
+        height: 450px;
+        width: 100%;
+        margin-bottom: 3rem;
+      }
+
+      .insights {
+        display: grid;
+        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      }
+
+      .insight-card {
+        background: #f8fafc;
+        padding: 1.5rem;
+        border-radius: 10px;
+        border-top: 4px solid var(--primary);
+        transition: transform 0.2s ease;
+      }
+
+      .insight-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .insight-card:nth-child(1) {
+        border-top-color: var(--accent-gpt);
+      }
+      .insight-card:nth-child(2) {
+        border-top-color: #e74c3c;
+      }
+      .insight-card:nth-child(3) {
+        border-top-color: var(--accent-claude);
+      }
+
+      .insight-card h3 {
+        margin-top: 0;
+        color: var(--primary);
+        font-size: 1.2rem;
+        margin-bottom: 0.8rem;
+      }
+
+      .insight-card p {
+        margin: 0;
+        color: var(--text-muted);
+        line-height: 1.5;
+        font-size: 0.95rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Lost in the Middle</h1>
+      <p class="subtitle">
+        An interactive visualization of how language models struggle to use
+        information located in the middle of long input contexts, creating a
+        distinctive "U-shaped" performance curve.
+      </p>
+
+      <div class="chart-container">
+        <canvas id="performanceChart"></canvas>
+      </div>
+
+      <div class="insights">
+        <div class="insight-card">
+          <h3>Primacy Bias</h3>
+          <p>
+            Models demonstrate high accuracy when the relevant information is
+            placed at the very beginning of the prompt.
+          </p>
+        </div>
+        <div class="insight-card">
+          <h3>The "Middle" Slump</h3>
+          <p>
+            Accuracy degrades significantly when models must access and use
+            information buried in the middle of the input text.
+          </p>
+        </div>
+        <div class="insight-card">
+          <h3>Recency Bias</h3>
+          <p>
+            Performance partially rebounds when the target information occurs at
+            the very end of the input context.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const ctx = document.getElementById("performanceChart").getContext("2d");
+
+      // Data derived from the paper's Multi-Document QA experiments (20 total retrieved documents)
+      new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: [
+            "1st Document",
+            "5th Document",
+            "10th Document",
+            "15th Document",
+            "20th Document",
+          ],
+          datasets: [
+            {
+              label: "GPT-3.5-Turbo",
+              data: [75.8, 57.2, 53.8, 55.4, 63.2],
+              borderColor: "#8e44ad",
+              backgroundColor: "rgba(142, 68, 173, 0.1)",
+              borderWidth: 3,
+              pointBackgroundColor: "#8e44ad",
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              tension: 0.4,
+              fill: true,
+            },
+            {
+              label: "Claude-1.3",
+              data: [55.9, 59.9, 56.8, 57.2, 60.1],
+              borderColor: "#3498db",
+              backgroundColor: "rgba(52, 152, 219, 0.05)",
+              borderWidth: 3,
+              pointBackgroundColor: "#3498db",
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              tension: 0.4,
+              fill: false,
+            },
+            {
+              label: "MPT-30B-Instruct",
+              data: [53.7, 51.8, 52.2, 52.7, 56.3],
+              borderColor: "#1abc9c",
+              backgroundColor: "rgba(26, 188, 156, 0.05)",
+              borderWidth: 3,
+              pointBackgroundColor: "#1abc9c",
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              tension: 0.4,
+              fill: false,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: "index",
+            intersect: false,
+          },
+          plugins: {
+            legend: {
+              position: "top",
+              labels: {
+                font: { family: "system-ui", size: 13 },
+                usePointStyle: true,
+                padding: 20,
+              },
+            },
+            tooltip: {
+              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              titleFont: { size: 14, family: "system-ui" },
+              bodyFont: { size: 13, family: "system-ui" },
+              padding: 12,
+              cornerRadius: 8,
+              callbacks: {
+                label: function (context) {
+                  return (
+                    " " + context.dataset.label + ": " + context.parsed.y + "%"
+                  );
+                },
+              },
+            },
+          },
+          scales: {
+            y: {
+              title: {
+                display: true,
+                text: "Accuracy (%)",
+                font: { weight: "bold", size: 14 },
+                color: "#555",
+              },
+              min: 45,
+              max: 80,
+              grid: { color: "#eaeaea" },
+            },
+            x: {
+              title: {
+                display: true,
+                text: "Position of Relevant Information in Context",
+                font: { weight: "bold", size: 14 },
+                color: "#555",
+                padding: { top: 10 },
+              },
+              grid: { display: false },
+            },
+          },
+        },
+      });
+    </script>
+  </body>
+</html>

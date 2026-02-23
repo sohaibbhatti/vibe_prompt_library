@@ -1,0 +1,100 @@
+<svg width="200" height="100" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Glow filter for the moon -->
+    <filter id="moon-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <style>
+    /* Container styles */
+    .switch-container {
+      cursor: pointer;
+    }
+
+    /* Background transition */
+    .background {
+      fill: #87CEEB; /* Sky blue */
+      transition: fill 0.6s ease-in-out;
+    }
+
+    /* Knob transition */
+    .knob {
+      transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    }
+
+    /* Icon transitions */
+    .sun {
+      opacity: 1;
+      transform: rotate(0deg) scale(1);
+      transition: all 0.5s ease-in-out;
+      transform-origin: center;
+    }
+
+    .moon {
+      opacity: 0;
+      transform: rotate(-90deg) scale(0.5);
+      transition: all 0.5s ease-in-out;
+      transform-origin: center;
+    }
+
+    /* Hover States applied to the whole SVG group */
+    .switch-group:hover .background {
+      fill: #2C3E50; /* Midnight blue */
+    }
+
+    .switch-group:hover .knob {
+      transform: translateX(100px);
+    }
+
+    .switch-group:hover .sun {
+      opacity: 0;
+      transform: rotate(180deg) scale(0.5);
+    }
+
+    .switch-group:hover .moon {
+      opacity: 1;
+      transform: rotate(0deg) scale(1);
+    }
+  </style>
+
+  <g class="switch-group">
+    <!-- Background Pill -->
+    <rect class="background" x="10" y="10" width="180" height="80" rx="40" ry="40" />
+
+    <!-- Sliding Knob Group -->
+    <g class="knob">
+      <!-- Knob Circle -->
+      <circle cx="50" cy="50" r="34" fill="#FFFFFF" filter="drop-shadow(0px 2px 4px rgba(0,0,0,0.2))"/>
+      
+      <!-- Icons Container centered in knob -->
+      <svg x="25" y="25" width="50" height="50" viewBox="0 0 50 50">
+        
+        <!-- Sun Icon -->
+        <g class="sun">
+          <circle cx="25" cy="25" r="9" fill="#FDB813" />
+          <g stroke="#FDB813" stroke-width="2" stroke-linecap="round">
+            <line x1="25" y1="6" x2="25" y2="10" />
+            <line x1="25" y1="40" x2="25" y2="44" />
+            <line x1="6" y1="25" x2="10" y2="25" />
+            <line x1="40" y1="25" x2="44" y2="25" />
+            <line x1="11.5" y1="11.5" x2="14.5" y2="14.5" />
+            <line x1="35.5" y1="35.5" x2="38.5" y2="38.5" />
+            <line x1="38.5" y1="11.5" x2="35.5" y2="14.5" />
+            <line x1="14.5" y1="35.5" x2="11.5" y2="38.5" />
+          </g>
+        </g>
+
+        <!-- Moon Icon -->
+        <g class="moon" filter="url(#moon-glow)">
+          <path d="M28 12c-6.627 0-12 5.373-12 12s5.373 12 12 12c2.2 0 4.2-.6 6-1.6-2.5-1.5-4-4.2-4-7.4 0-4.4 3.6-8 8-8 .8 0 1.5.1 2.2.3C38.2 14.6 33.6 12 28 12z" fill="#F4F6F0" />
+        </g>
+        
+      </svg>
+    </g>
+  </g>
+</svg>
